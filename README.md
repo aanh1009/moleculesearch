@@ -32,18 +32,33 @@ map = data.maps[0]
 
 3. Search Function
 
-When the setup is done, I started to write function for searching molecules using text-based query. The function first embeds the query, then uses NomicAI's vector_search built-in function to search for k neighbors, i.e. k compounds having descriptions that match the query. Here, k is set to 10. 
+When the setup was done, I started to write a function for searching molecules using a text-based query. The function first embeds the query, and then uses NomicAI's vector_search built-in function to search for k neighbors, i.e. k compounds having descriptions that match the query. Here, k is set to 10. 
 
 Here, note that 'embed' only accepts list strings. Therefore the query has to be converted into a list in order not to incur an error.
+
 ```
 def search(query):
     #embed the query with nomic.embed 
     query_vector = embed.text(
         texts = [query]
-        )
     ...
+        )
+```
+4. Retrieving the search results
+
+Finally, I created an input cell that stores outputs when a query is entered:
+
+```
+result = search(input('your description: '))
 ```
 
+The result is displayed using the get_data method of AtlasDataset: 
 
+```
+dataset = AtlasDataset('irrational-avram') #name of the dataset i created to map the dataset previously
+dataset.get_data(ids=result[0])
+```
 
+In the end, here's a snippet of what we get when we enter a query (I entered 'a stilbenoid' in this case):
 
+![image](https://github.com/user-attachments/assets/37e3685d-7fb4-4a38-8f6b-4919d421c6ca)
