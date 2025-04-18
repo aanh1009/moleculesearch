@@ -1,64 +1,70 @@
-**Molecule Semantic Search Engine**
+# Getting Started with Create React App
 
-A search engine using text embedding from NomicAI API to power the search of chemical compounds using text-based queries. The engine currently contains information of 50000 different compounds. 
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-Step-by-step breakdown: 
+## Available Scripts
 
-1. Early Data Analysis (EDA)
+In the project directory, you can run:
 
-The original dataset (description_df.pkl) contains information of more than 300000 compounds in 43 columns. The purpose of the search engine is to embed the descriptions, compare the text-based query to them, and retrieve the name and basic information of relevant compounds. Therefore, in this stage, most columns that contain domain-specific information (like toxicity, space volume, etc.) will be excluded.
+### `npm start`
 
-Other processes on the dataset include: excluding descriptions with more than 512 characters, deleting cases where the compound name is not a string, and data sampling (taking 50000 samples from the original dataset). All of these analyses are done using pandas and pickle
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-2. Nomic AI Setup & Data Upload
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-Next, I installed NomicAI and connected to my NomicAI API key:
-```
-pip install nomic
-nomic login '[key]'
-```
+### `npm test`
 
-Following, I imported atlas from nomic then mapped the dataset to nomic using atlas:
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-```
-data = atlas.map_data(df2, indexed_field='description')
-```
-Here, the data is 'df2', and the target for embedding and searching is 'description'. 
+### `npm run build`
 
-Finally, I created a map:
-```
-map = data.maps[0]
-```
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-3. Search Function
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-When the setup was done, I started to write a function for searching molecules using a text-based query. The function first embeds the query, and then uses NomicAI's vector_search built-in function to search for k neighbors, i.e. k compounds having descriptions that match the query. Here, k is set to 10. 
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-Here, note that 'embed' only accepts list strings. Therefore the query has to be converted into a list in order not to incur an error.
+### `npm run eject`
 
-```
-def search(query):
-    #embed the query with nomic.embed 
-    query_vector = embed.text(
-        texts = [query]
-    ...
-        )
-```
-4. Retrieving the search results
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-Finally, I created an input cell that stores outputs when a query is entered:
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-```
-result = search(input('your description: '))
-```
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-The result is displayed using the get_data method of AtlasDataset: 
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-```
-dataset = AtlasDataset('irrational-avram') #name of the dataset i created to map the dataset previously
-dataset.get_data(ids=result[0])
-```
+## Learn More
 
-In the end, here's a snippet of what we get when we enter a query (I entered 'a stilbenoid' in this case):
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-![image](https://github.com/user-attachments/assets/37e3685d-7fb4-4a38-8f6b-4919d421c6ca)
+To learn React, check out the [React documentation](https://reactjs.org/).
+
+### Code Splitting
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+
+### Analyzing the Bundle Size
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
