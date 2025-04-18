@@ -1,70 +1,145 @@
-# Getting Started with Create React App
+# Molecule Semantic Search
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Natural‑language and structure‑aware search engine for small‑molecule libraries. Type a phrase like **“beta‑lactam antibiotic with carboxylate”** or paste a **SMILES** string, and get the closest compounds ranked by semantic similarity—with an interactive force‑graph to explore neighbourhoods.
 
-## Available Scripts
+> **Live demo →** <https://molecular-search.vercel.app>
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## ✨  Why it’s cool
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| Feature | Details |
+|---------|---------|
+| **Dual‑mode search** | Accepts free‑text *or* SMILES; backend embeds both into the *same* vector space so you can mix chemistry and plain English. |
+| **Vector DB** | Uses **Pinecone** for sub‑second K‑NN over >50 k molecules (adjust size via env). |
+| **OpenAI/Instructor‑XL embeddings** | Molecular descriptions are embedded once and cached; queries embedded on the fly. |
+| **React + Tailwind UI** | Minimalistic search bar, result table, and **react‑force‑graph** visualisation. |
+| **Express API** | Lightweight Node server (`/api/search`, `/api/graph/:id`). |
+| **Reproducible pipeline** | `biology.ipynb` and `script.py` show how the index is built with **nomic‑atlas**. |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## 🏗️  Architecture
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```txt
+                ┌──────────────────────┐
+                │   React front‑end    │
+                │  (Vite + Tailwind)   │
+                └───────▲───────┬──────┘
+                        │search│graph
+                        ▼       │
+                ┌──────────────────────┐
+                │   Express REST API   │
+                └───────▲───────┬──────┘
+                        │embed  │K‑NN
+                        ▼       │
+             ┌────────────────────────────┐
+             │  Pinecone vector index     │
+             └────────────────────────────┘
+```
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+##  🚀  Quick start (local dev)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 1 · Clone & install
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone https://github.com/aanh1009/molecule-semantic-search.git
+cd molecule-semantic-search
+npm install            # installs both FE + BE deps
+```
 
-### `npm run eject`
+### 2 · Set env vars
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Create `.env.local` (read by both CRA & Express):
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```env
+# Pinecone
+PINECONE_API_KEY=xxx
+PINECONE_ENV=us-east4-gcp
+PINECONE_INDEX=molecules
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Embeddings
+OPENAI_API_KEY=sk-...
+EMBED_MODEL=text-embedding-3-large   # or use instructor-xl in script.py
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Server
+PORT=5000   # Express
+REACT_APP_API_URL=http://localhost:5000
+```
 
-## Learn More
+### 3 · Import the dataset (optional)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+If you want your own set:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+python script.py          # reads description_df.pkl → upserts to Pinecone
+```
 
-### Code Splitting
+### 4 · Run dev servers
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+# terminal 1 – API
+auth0 login   # if you guard API, else skip
+node server.js
 
-### Analyzing the Bundle Size
+# terminal 2 – React client
+npm start     # CRA runs on :3000 and proxies /api → :5000
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Open <http://localhost:3000> and start searching.
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+##  🔌 API Reference
 
-### Advanced Configuration
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| `POST` | `/api/search` | `{ "query": "penicillin" , "topK": 10 }` | Returns top‑`k` matches from Pinecone with metadata. |
+| `GET`  | `/api/graph/:id` | – | Returns nearest‑neighbour IDs for force‑graph expansion. |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+##  🗂  Folder structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
+.
+├─ public/               # favicon, index.html
+├─ src/                  # React code (components/, hooks/, styles/)
+│  ├─ api/               # axios wrappers
+│  ├─ pages/             # Home.jsx, About.jsx
+│  └─ graph/             # ForceGraph.jsx
+├─ server.js             # Express entry
+├─ script.py             # Index‑building utility
+├─ biology.ipynb         # Exploratory data prep
+└─ tailwind.config.js
+```
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+##  🛣️  Roadmap
+
+- [ ] Enable 3‑D conformer visualisation via **NGL Viewer**.
+- [ ] Add filters (molecular weight, logP, etc.).
+- [ ] Switch to **pgvector** Postgres alternative for self‑hosting.
+- [ ] Auth (Clerk) to save favourite molecules.
+
+---
+
+##  🤝  Contributing
+
+PRs welcome! Please open an issue first to discuss what you plan to change.
+
+###  Development guidelines
+
+* 2‑space indent, Prettier enforced.
+* Use semantic commit messages (`feat:`, `fix:`, etc.).
+* Keep components atomic, co‑locate styles.
+
+---
+
+##  🔒  License
+
+MIT © 2025 Tuan Anh Ngo
+
